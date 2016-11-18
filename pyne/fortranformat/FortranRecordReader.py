@@ -30,15 +30,20 @@ class FortranRecordReader(object):
     performance
     '''
     
-    def __init__(self, format):
-        self.format = format
+    def __init__(self,format):
+        self._format = format
         self._eds = []
         self._rev_eds = []
         self._parse_format()
 
+    def __init__(self):
+        self._eds = []
+        self._rev_eds = []
+        #self._parse_format()
+
     def __eq__(self, other):
         if isinstance(other, FortranRecordReader):
-            return self.format == other.format
+            return self._format == other.format
         else:
             return object.__eq__(self, other)
 
@@ -65,7 +70,7 @@ class FortranRecordReader(object):
     format = property(get_format, set_format)
 
     def _parse_format(self):
-        self._eds, self._rev_eds = _parser(_lexer(self.format))
+        self._eds, self._rev_eds = _parser(_lexer(self._format))
 
 
 if __name__ == '__main__':
