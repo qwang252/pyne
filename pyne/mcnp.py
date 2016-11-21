@@ -90,9 +90,8 @@ class Mctal(object):
         
 	# create tally objects 
 	for num in range(1,self.n_tallies):
-	    tally = Tally()
-	    m = tally.read(self.f)
-	print(m) 
+	    self.tally = Tally()
+	    self.tally_n = self.tally.read(self.f)
 
 	# create kcode object
         kcode = Kcode()
@@ -123,7 +122,6 @@ class Tally(object):
         if int(self.particle_type) < 0:
 	    words = filename.readline()
 	    self.tally = read_line(word,'(40I2)')
-	    print(self.tally)
 
         #read FC card line 
 	words = filename.readline()
