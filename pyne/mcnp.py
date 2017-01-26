@@ -26,7 +26,7 @@ from pyne.material import Material
 from pyne.material import MultiMaterial
 from pyne import nucname
 from pyne.binaryreader import _BinaryReader, _FortranRecord
-from pyne.fortranformat import FortranRecordReader
+from pyne.fortranformat; import FortranRecordReader
 from warnings import warn
 
 warn(__name__ + " is not yet QA compliant.", QAWarning)
@@ -64,6 +64,7 @@ class Mctal(object):
 	
         # read title 
         words = self.f.readline()
+        
 	title = read_line(words,'(2A8,A19,I5,I11,I15)')
         self.code_name = title[0]
 	self.code_version = title[1]
