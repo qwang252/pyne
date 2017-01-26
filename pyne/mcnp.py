@@ -65,7 +65,7 @@ class Mctal(object):
 	
         # read title 
 	words = self.f.readline()
-	title = read_line(words,'(2A8,A19,I5,I11,I15)')
+	title = read_line(words,'(2A8,A19,I5,I12,I15)')
         self.code_name = title[0]
 	self.code_version = title[1]
 	self.code_date = title[2]
@@ -110,8 +110,12 @@ class Tally(object):
 	    filename = open(filename, 'r')
 	except:
 	    print("File already opened!")
+	
 	word = filename.readline()
-        while (word.split()[0]!='tally'):
+	a = word.split()
+	first = a[0]
+	second = a[1]
+        while (first!='tally' and second!=tally_name):
             word = filename.readline()
           
 	# store the first line of the tally 
