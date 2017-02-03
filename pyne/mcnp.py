@@ -51,14 +51,13 @@ class Mctal(object):
     def __init__(self):
         pass
 
-    def read(self, filename):
+    def read(self, filename, list_tally):
         """Parses a 'mctal' tally output file from MCNP. Currently this
         only supports reading the kcode data- the remaining tally data
         will not be read.
         """
         # create a dictionary 
         self.tally = {}
-	self.t = {}
 
 	# open file
         self.f = open(filename, 'r')
@@ -91,8 +90,12 @@ class Mctal(object):
         
 	# create tally objects 
 	for tally_name in self.tally_list:
-	    self.tally[tally_name] = Tally()
-	    self.tally_read = self.tally[tally_name].read(self.f, tally_name)
+	    if tally_name in list_tally:
+		self.tally[tally_name] = Tally()
+		self.tally_read = self.tally[tally_name].read(self.f)
+	    else:
+		tmp = Tally()
+		tmp.read(self.f)
 
 	# create kcode object
         kcode = Kcode()
@@ -102,22 +105,19 @@ class Tally(object):
     def __init__(self):
 	pass
 
-    def read(self, filename, tally_name):
+    def read(self, filename):
 	"""Parses tally information from a 'mctal' tally output from MCNP 
         """
 	# read line until tally information is found
 	try:
 	    filename = open(filename, 'r')
 	except:
-	    print("File already opened!")
+	    "File already opened!"
 	
 	word = filename.readline()
-	a = word.split()
-	first = a[0]
-	second = a[1]
-        while (first!='tally' and second!=tally_name):
+        while (word.split()[0]!='tally'):
             word = filename.readline()
-          
+	   
 	# store the first line of the tally 
 	tally = read_line(word,'(A5,3I5)')       
         self.problem_name = tally[1]
