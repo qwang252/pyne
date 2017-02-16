@@ -49,20 +49,21 @@ if sys.version_info[0] > 2:
 
 class Mctal(object):
     def __init__(self):
-        pass
+        past
 
-    def read(self, filename,tally_name):
+    def read(self, filename, list_tally):
         """Parses a 'mctal' tally output file from MCNP. Currently this
         only supports reading the kcode data- the remaining tally data
         will not be read.
         """
         # create a dictionary 
-        self.mctal = {}
+        self.tally = {}
 
 	# open file
         self.f = open(filename, 'r')
 	
         # read title 
+
         words = self.f.readline()
         self.mctal['title'] =read_line(words,'(2A8,A19,I5,I11,I15)')
         self.code_name = self.mctal['title'][0]
@@ -71,10 +72,21 @@ class Mctal(object):
 	self.dump = self.mctal['title'][3]
 	self.n_histories = self.mctal['title'][4]
 	self.n_pseudorandoms =  self.mctal['title'][5]
+=======
+	words = self.f.readline()
+	title = read_line(words,'(2A8,A19,I5,I12,I15)')
+        self.code_name = title[0]
+	self.code_version = title[1]
+	self.code_date = title[2]
+	self.dump = title[3]
+	self.n_histories = title[4]
+	self.n_pseudorandoms =  title[5]
+>>>>>>> 07a5ac0ecaf51899b7f851d7aa9449031d0e5958
 	
         # read comment
         words = self.f.readline()
         comment = read_line(words,'(1x,A79)')
+<<<<<<< HEAD
         self.mctal['comment'] = [item for item in comment if item is not None]
 
         # read number of tallies and perturbations
@@ -87,13 +99,33 @@ class Mctal(object):
         num_lines_tally_num = math.ceil(n_tallies/16)
 	if num_lines_tally_num != 0:
             self.mctal['tally_list'] = routine_read_info(self.f,'(16I5)',num_lines_tally_num)
+            int find_tally_name = 0;
+            # check if the specified tally_name is in the list
+            if tally_name in self.mctal['tally_list']:
+                 find_tally_name = 1;
+            else:
+                 print('tally name is not in the tally list')
+            
+
+            int find_tally_list = 0;
+            for user_tally in tally_list:
+                for tally in self.mctal['tally_list']:
+                   if user_tally == tally: 
+                       find_tally_list = 1;
+                       break
+                if find_tally_list != 1:
+                   print('tally'+str(user_tally)+" is not in the tally list")
+                   find_tally_list = 0 
+        
+                           
         # close file 
         self.f.close()
-
+        if find_tally_name == 1 or find_tally_list == 1:
 	# create tally objects 
-	tally = Tally()
+	        tally = Tally()
         # tally_name is the number that represents tally
-        tally.read(filename,tally_name)
+        
+                tally.read(filename,tally_name)
 
 	# create kcode object
         #kcode = Kcode()
@@ -249,16 +281,156 @@ class Tally(object):
 	print(self.tally)
 	
         
+=======
+        self.comment = [item for item in comment if item is not None]
+
+        # read number of tallies and perturbations
+        words = self.f.readline()
+        tallies_tmp = read_line(words,'(A4,I6,1x,A5,I6)')
+        self.n_tallies = tallies_tmp[1]
+	self.n_perturbations = tallies_tmp[3]
+        
+        # read the list of the tally numbers
+        num_lines_tally_num = math.ceil(self.n_tallies/16)
+	if num_lines_tally_num != 0:
+            self.tally_list = multiple_line_reader(self.f,'(16I5)',num_lines_tally_num)
+        
+	# create tally objects 
+	for tally_name in self.tally_list:
+	    if tally_name in list_tally:
+		self.tally[tally_name] = Tally()
+		self.tally_read = self.tally[tally_name].read(self.f)
+	    else:
+		tmp = Tally()
+		tmp.read(self.f)
+
+	# create kcode object
+        kcode = Kcode()
+        kcode.read(self.f)
+            
+class Tally(object):
+    def __init__(self):
+	pass
+
+    def read(self, filename):
+	"""Parses tally information from a 'mctal' tally output from MCNP 
+        """
+	# read line until tally information is found
+	try:
+	    filename = open(filename, 'r')
+	except:
+	    "File already opened!"
+	
+	word = filename.readline()
+        while (word.split()[0]!='tally'):
+            word = filename.readline()
+	   
+	# store the first line of the tally 
+	tally = read_line(word,'(A5,3I5)')       
+        self.problem_name = tally[1]
+        self.particle_type = tally[2]
+        self.tally_type = tally[3]
+
+	# condition on particle type if negative then multiple particles used
+        if int(self.particle_type) < 0:
+	    words = filename.readline()
+	    self.tally = read_line(word,'(40I2)')
+
+        #read FC card line 
+	words = filename.readline()
+        if words.startswith(" "):
+	    FC_card_lines = read_line(words,'(5x,A75)')
+	    words = filename.readline()
+	    while words.startswith(" "):
+		FC_card_lines = FC_card_lines + read_line(words,'(5x,A75)') 
+		words = filename.readline()
+
+	# read f lines
+	f = read_line(words,'(A2,I8)')
+	self.cell = f[1]
+        if self.cell != 0 and self.tally_type != 1:
+	    cell_num_lines = math.ceil(self.cell/11)
+            cell_nums = multiple_line_reader(filename,'(11I7)',cell_num_lines)
+            self.cell_list = cell_nums
+	words = filename.readline()
+            
+	# read flagged/unflagged bin information
+	bin_info = read_line(words,'(A2,I8)')
+	self.number_bins = bin_info[1]
+      
+        # read user bin information
+        words = filename.readline()
+	userbin= read_line(words,'(A2,I8)')
+        self.userbin_number=userbin[1]
+            
+        # read segment bins line
+        words = filename.readline()
+        segment = read_line(words,'(A2,I8)')
+        self.segment_bin = segment[1]
+
+        # read multipiler bin line
+        words = filename.readline()
+        multiplier = read_line(words,'(A2,I8)')
+        self.multiplier_bin = multiplier[1]
+          
+        # read cosine values
+        words = filename.readline()
+	cosine = read_line(words,'(A2,I8,I4)')
+        self.cosine_bin = cosine[1]
+	self.cosine_flag = cosine[2]
+        if self.cosine_bin != 0:
+	    cos_val_lines = math.ceil(self.cosine_bin/6)
+            self.cos_val = multiple_line_reader(filename,'(1p6E13.5)',cos_val_lines)
+
+        # read energy bin line
+        words = filename.readline()
+	energy = read_line(words,'(A2,I8,I4)')
+        self.energy_bin = energy[1]
+        self.energy_flag = energy[2]
+        if self.energy_bin !=0:
+            energy_val_lines = math.ceil(self.energy_bin/6)
+            self.energy_val = multiple_line_reader(filename,'(1P6E13.5)',energy_val_lines)
+
+        #read time bin line
+        words = filename.readline()
+	time = read_line(words,'(A2,I8,I4)')
+        self.time_bin = time[1]
+        self.time_flag = time[2]
+        if self.time_bin!= 0:
+            time_val_lines = math.ceil(self.time_bin/6)
+            self.time_val = multiple_line_reader(filename,'(1P6E13.5)',time_val_lines)
+
+        # read VALS
+        filename.readline()
+        words = filename.readline()
+	vals = read_line(words,'(4(1PE13.5,0PF7.4))')
+        words = filename.readline()
+        while words.startswith(" "):
+            vals = vals + read_line(words,'(4(1PE13.5,0PF7.4))')
+            words = filename.readline()
+        vals = [val for val in vals if val is not None]
+	self.data_pairs = vals
+	
+        # read TFC lines
+	tfc = read_line(words,'(A3,I5,8I8)')
+        tally_fluc_set= tfc[1]
+        if tally_fluc_set != 0:
+	    self.tfc_list = multiple_line_reader(filename,'(I11,1P3E13.5)',tally_fluc_set)
+>>>>>>> 07a5ac0ecaf51899b7f851d7aa9449031d0e5958
 
 class Kcode(object):
     def __init__(self):
 	pass
     def read(self,filename):
+<<<<<<< HEAD
         
+=======
+>>>>>>> 07a5ac0ecaf51899b7f851d7aa9449031d0e5958
         word = filename.readline()
 	try:
 	    while (word.split()[0]!='kcode'):
 		word = filename.readline()
+<<<<<<< HEAD
 	   
 	    self.kcode = {}
         #print(word)
@@ -268,6 +440,13 @@ class Kcode(object):
             self.n_cycles = words[1]
             self.n_inactive = words[2]
             vars_per_cycle = words[3]
+=======
+	    self.kcode = {}
+	    kcode = read_line(word,'(A5,3I5)')
+            self.n_cycles = kcode[1]
+            self.n_inactive = kcode[2]
+            vars_per_cycle = kcode[3]
+>>>>>>> 07a5ac0ecaf51899b7f851d7aa9449031d0e5958
             
             self.k_col = []
             self.k_abs = []
@@ -287,6 +466,7 @@ class Kcode(object):
                 # read keff and prompt neutron lifetimes
                 if vars_per_cycle == 0 or vars_per_cycle == 5:
                     num_lines = 1
+<<<<<<< HEAD
                     values = routine_read_info(filename,'(5F12.6)',num_lines)
                     #values = [float(i) for i in get_words(self.f, lines=1)]
                 elif vars_per_cycle == 19:
@@ -296,15 +476,26 @@ class Kcode(object):
                     #values = [float(i) for i in get_words(self.f, lines=4)]
                 #print(values)
 
+=======
+                    values = multiple_line_reader(filename,'(5F12.6)',num_lines)
+                elif vars_per_cycle == 19:
+                    num_lines = 4
+                    values = multiple_line_reader(filename,'(5F12.6)',num_lines)
+>>>>>>> 07a5ac0ecaf51899b7f851d7aa9449031d0e5958
                 self.k_col.append(values[0])
                 self.k_abs.append(values[1])
                 self.k_path.append(values[2])
                 self.prompt_life_col.append(values[3])
                 self.prompt_life_path.append(values[4])
+<<<<<<< HEAD
 
                 if vars_per_cycle <= 5:
                     continue
 
+=======
+                if vars_per_cycle <= 5:
+                    continue
+>>>>>>> 07a5ac0ecaf51899b7f851d7aa9449031d0e5958
                 avg, stdev = (values[5], values[6])
                 self.avg_k_col.append((avg, stdev))
                 avg, stdev = (values[7], values[8])
@@ -319,6 +510,7 @@ class Kcode(object):
                 self.prompt_life_combined.append((avg, stdev))
                 self.cycle_histories.append(values[17])
                 self.avg_k_combined_FOM.append(values[18])
+<<<<<<< HEAD
 
             self.kcode['k_col'] = self.k_col
             self.kcode['k_abs'] = self.k_abs
@@ -339,12 +531,21 @@ class Kcode(object):
 
 
 
+=======
+	except IndexError:
+	    print("No Kcode information")
+
+>>>>>>> 07a5ac0ecaf51899b7f851d7aa9449031d0e5958
 def read_line(line,ffs):
     ff = FortranRecordReader(ffs)
     words =ff.read(line)
     return words
 
+<<<<<<< HEAD
 def routine_read_info(file,ffs,num_lines):
+=======
+def multiple_line_reader(file,ffs,num_lines):
+>>>>>>> 07a5ac0ecaf51899b7f851d7aa9449031d0e5958
     info = []
     ff = FortranRecordReader(ffs)
     for i in range(int(num_lines)):
