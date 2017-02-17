@@ -1,15 +1,12 @@
-#!/usr/bin/env python
-"""Module for parsing MCNP output data. MCNP is a general-purpose Monte Carlo
+"""
+dule for parsing MCNP output data. MCNP is a general-purpose Monte Carlo
 N-Particle code developed at Los Alamos National Laboratory that can be used
 for neutron, photon, electron, or coupled neutron/photon/electron transport.
 Further information on MCNP can be obtained from http://mcnp.lanl.gov/
-
 Mctal and Runtpe classes still need work. Also should add Meshtal and Outp
 classes.
-
 If PyTAPS is not installed, then Wwinp, Meshtal, and Meshtally will not be
 available to use.
-
 """
 from __future__ import print_function, division
 import sys
@@ -49,7 +46,7 @@ if sys.version_info[0] > 2:
 
 class Mctal(object):
     def __init__(self):
-        past
+        pass
 
     def read(self, filename, list_tally):
         """Parses a 'mctal' tally output file from MCNP. Currently this
@@ -63,16 +60,6 @@ class Mctal(object):
         self.f = open(filename, 'r')
 	
         # read title 
-
-        words = self.f.readline()
-        self.mctal['title'] =read_line(words,'(2A8,A19,I5,I11,I15)')
-        self.code_name = self.mctal['title'][0]
-	self.code_version = self.mctal['title'][1]
-	self.code_date = self.mctal['title'][2]
-	self.dump = self.mctal['title'][3]
-	self.n_histories = self.mctal['title'][4]
-	self.n_pseudorandoms =  self.mctal['title'][5]
-=======
 	words = self.f.readline()
 	title = read_line(words,'(2A8,A19,I5,I12,I15)')
         self.code_name = title[0]
@@ -81,207 +68,10 @@ class Mctal(object):
 	self.dump = title[3]
 	self.n_histories = title[4]
 	self.n_pseudorandoms =  title[5]
->>>>>>> 07a5ac0ecaf51899b7f851d7aa9449031d0e5958
 	
         # read comment
         words = self.f.readline()
         comment = read_line(words,'(1x,A79)')
-<<<<<<< HEAD
-        self.mctal['comment'] = [item for item in comment if item is not None]
-
-        # read number of tallies and perturbations
-        words = self.f.readline()
-        self.mctal['number_tally'] = read_line(words,'(A4,I6,1x,A5,I6)')
-        n_tallies = self.mctal['number_tally'][1]
-	n_perturbations = self.mctal['number_tally'][3]
-        
-        # read the list of the tally numbers
-        num_lines_tally_num = math.ceil(n_tallies/16)
-	if num_lines_tally_num != 0:
-            self.mctal['tally_list'] = routine_read_info(self.f,'(16I5)',num_lines_tally_num)
-            int find_tally_name = 0;
-            # check if the specified tally_name is in the list
-            if tally_name in self.mctal['tally_list']:
-                 find_tally_name = 1;
-            else:
-                 print('tally name is not in the tally list')
-            
-
-            int find_tally_list = 0;
-            for user_tally in tally_list:
-                for tally in self.mctal['tally_list']:
-                   if user_tally == tally: 
-                       find_tally_list = 1;
-                       break
-                if find_tally_list != 1:
-                   print('tally'+str(user_tally)+" is not in the tally list")
-                   find_tally_list = 0 
-        
-                           
-        # close file 
-        self.f.close()
-        if find_tally_name == 1 or find_tally_list == 1:
-	# create tally objects 
-	        tally = Tally()
-        # tally_name is the number that represents tally
-        
-                tally.read(filename,tally_name)
-
-	# create kcode object
-        #kcode = Kcode()
-        #kcode.read(self.f)
-            
-class Tally(object):
-    def __init__(self):
-        pass
-
-    def read(self,filename,tally_name):
-	"""Parses tally information from a 'mctal' tally output from MCNP"""
-
-	#open file
-       
-        self.f = open(filename, 'r')
-	
-  	# read line 
-        
-        word = self.f.readline()
-        print(word)
-	# find tally iformation  
-        while (word.split()[0]!='tally' and word.split()[1]!=tally_name):
-            word = self.f.readline()
-
-        
-	# create a tally dictionary
-        #self.tally_dic = {}
-      
-	# read the tally info if there is any 
-        #for num in range(1,n_tallies+1):
-	# tally dictionary
-        self.tally = {}
-            
-            
-	# store the first line of the tally           
-	self.tally['TALLY'+str(tally_name)] = read_line(word,'(A5,3I5)')       
-        problem_name = self.tally['TALLY'+str(tally_name)][1]
-        particle_type = self.tally['TALLY'+str(tally_name)][2]
-        tally_type = self.tally['TALLY'+str(tally_name)][3]
-
-        # condition on particle type if negative then multiple particles used
-        if int(particle_type) < 0:
-	       words = self.f.readline()
-	       self.tally['m_partticle_type'] = read_line(word,'(40I2)')
-
-        #read FC card line 
-	words = self.f.readline()
-        if words.startswith(" "):
-	       #ff = FortranRecordReader('(5x,A75)')
-	       #FC_card_lines = ff.read(words) 
-	       FC_card_lines = read_line(words,'(5x,A75)')
-	       words = self.f.readline()
-	       while words.startswith(" "):
-		    FC_card_lines = FC_card_lines + ff.read(words) 
-		    words = self.f.readline()
-               self.tally['FC_card_lines'] = FC_card_lines
-
-	# read f lines
-	f = read_line(words,'(A2,I8)')
-	#ff = FortranRecordReader('(A2,I8)')
-	 
-
-	#f = ff.read(words)
-        num_cell = f[1]
-        #print(num_cell)
-        if num_cell != 0 and tally_type != 1:
-		cell_num_lines = math.ceil(num_cell/11)
-                #ff = FortranRecordReader('(11I7)')
-                cell_nums = routine_read_info(self.f,'(11I7)',cell_num_lines)
-                self.tally['cell_number_list'] = cell_nums
-        words = self.f.readline()
-        #print(self.tally['cell_number_list'])
-        # read d line
-        ff = FortranRecordReader('(A2,I8)')
-        n = ff.read(words)
-      
-        self.tally['total_flagged_unflagged'] = n[1]
-        # read user bins line
-        words = self.f.readline()
-        user_bins=ff.read(words)
-        self.tally['user_bins_numbers']=user_bins[1]
-            
-        # read segment bins line
-        words = self.f.readline()
-        segment_bin = ff.read(words)
-        self.tally['segment_bin'] = segment_bin[1]
-
-        # read multipiler bin line
-        words = self.f.readline()
-        multiplier_bin = ff.read(words)
-        self.tally['multiplier_bin'] = multiplier_bin[1]
-          
-        # read cosine values
-        words = self.f.readline()
-        ff = FortranRecordReader('(A2,I8,I4)')
-        cos = ff.read(words)
-        cosine_bin_num = cos[1]
-        if cosine_bin_num != 0:
-                cos_val_lines = math.ceil(cosine_bin_num/6)
-                #ff = FortranRecordReader('(1P6E13.5)')
-                cos_val = routine_read_info(self.f,'(1p6E13.5)',cos_val_lines)
-                self.tally['cosine_values_list'] = cos_val
-                #print(self.tally['cosine_values_list'])
-        # read energy bin line
-        words = self.f.readline()
-        ff = FortranRecordReader('(A2,I8,I4)')
-        energy_bin = ff.read(words)
-        energy_bin_num = energy_bin[1]
-        if energy_bin_num !=0:
-                energy_val_lines = math.ceil(energy_bin_num/6)
-                #ff = FortranRecordReader('(1P6E13.5)')
-                energy_val = routine_read_info(self.f,'(1P6E13.5)',energy_val_lines)
-                self.tally['energy_values_list'] = energy_val
-                #print(self.tally['energy_values_list'])
-        # read time bin line
-        words = self.f.readline()
-        ff = FortranRecordReader('(A2,I8,I4)')
-        time_bin = ff.read(words)
-        time_bin_num = time_bin[1]
-        if time_bin_num != 0:
-                time_val_lines = math.ceil(time_bin_num/6)
-                #ff = FortranRecordReader('(1P6E13.5)')
-                time_val = routine_read_info(self.f,'(1P6E13.5)',time_val_lines)
-                self.tally['time_values_list'] = time_val
-                #print(self.tally['time_values_list'])
-        # read VALS
-        self.f.readline()
-        words = self.f.readline()
-        ff = FortranRecordReader('(4(1PE13.5,0PF7.4))')
-        vals = ff.read(words)
-        words = self.f.readline()
-        while words.startswith(" "):
-		vals = vals + ff.read(words)
-                words = self.f.readline()
-
-        vals = [val for val in vals if val is not None]
-        self.tally['tally_data_pairs'] = vals
-        #print(self.tally['tally_data_pairs'])
-        # read TFC lines
-        ff = FortranRecordReader('(A3,I5,8I8)')
-        tfc = ff.read(words)
-        tally_fluc_set_num = tfc[1]
-        #print(tall:y_fluc_set_num)
-        if tally_fluc_set_num != 0:
-		#ff = FortranRecordReader('(I11,1P3E13.5)')
-               	tally_fluc = routine_read_info(self.f,'(I11,1P3E13.5)',tally_fluc_set_num)
-		self.tally['TFC_list'] = tally_fluc   
-                #print(self.tally['TFC_list'])
-        #self.tally_dic['TALLY'+str(num)] = self.tally
-        #if num != n_tallies:
-        #        word = self.f.readline()
-
-	print(self.tally)
-	
-        
-=======
         self.comment = [item for item in comment if item is not None]
 
         # read number of tallies and perturbations
@@ -294,7 +84,24 @@ class Tally(object):
         num_lines_tally_num = math.ceil(self.n_tallies/16)
 	if num_lines_tally_num != 0:
             self.tally_list = multiple_line_reader(self.f,'(16I5)',num_lines_tally_num)
+      
+        # make tally list
+        if type(list_tally) is int:
+           tally_number = list_tally
+           list_tally = [tally_number]
         
+
+        # check if tally list exists
+        found = 0 
+        for tally1 in list_tally:
+            for tally2 in self.tally_list:
+                if tally1 == tally2: 
+                   found = 1
+                   break
+            if found == 0:
+               print("tally"+str(tally1)+" does not exist")
+            found = 0
+
 	# create tally objects 
 	for tally_name in self.tally_list:
 	    if tally_name in list_tally:
@@ -320,8 +127,8 @@ class Tally(object):
 	    filename = open(filename, 'r')
 	except:
 	    "File already opened!"
-	
-	word = filename.readline()
+
+        word = filename.readline()
         while (word.split()[0]!='tally'):
             word = filename.readline()
 	   
@@ -416,37 +223,20 @@ class Tally(object):
         tally_fluc_set= tfc[1]
         if tally_fluc_set != 0:
 	    self.tfc_list = multiple_line_reader(filename,'(I11,1P3E13.5)',tally_fluc_set)
->>>>>>> 07a5ac0ecaf51899b7f851d7aa9449031d0e5958
 
 class Kcode(object):
     def __init__(self):
 	pass
     def read(self,filename):
-<<<<<<< HEAD
-        
-=======
->>>>>>> 07a5ac0ecaf51899b7f851d7aa9449031d0e5958
         word = filename.readline()
 	try:
 	    while (word.split()[0]!='kcode'):
 		word = filename.readline()
-<<<<<<< HEAD
-	   
-	    self.kcode = {}
-        #print(word)
-            ff=FortranRecordReader('(A5,3I5)')
-            words=ff.read(word)
-        
-            self.n_cycles = words[1]
-            self.n_inactive = words[2]
-            vars_per_cycle = words[3]
-=======
 	    self.kcode = {}
 	    kcode = read_line(word,'(A5,3I5)')
             self.n_cycles = kcode[1]
             self.n_inactive = kcode[2]
             vars_per_cycle = kcode[3]
->>>>>>> 07a5ac0ecaf51899b7f851d7aa9449031d0e5958
             
             self.k_col = []
             self.k_abs = []
@@ -466,36 +256,17 @@ class Kcode(object):
                 # read keff and prompt neutron lifetimes
                 if vars_per_cycle == 0 or vars_per_cycle == 5:
                     num_lines = 1
-<<<<<<< HEAD
-                    values = routine_read_info(filename,'(5F12.6)',num_lines)
-                    #values = [float(i) for i in get_words(self.f, lines=1)]
-                elif vars_per_cycle == 19:
-                    num_lines = 4
-                    values = routine_read_info(filename,'(5F12.6)',num_lines)
-
-                    #values = [float(i) for i in get_words(self.f, lines=4)]
-                #print(values)
-
-=======
                     values = multiple_line_reader(filename,'(5F12.6)',num_lines)
                 elif vars_per_cycle == 19:
                     num_lines = 4
                     values = multiple_line_reader(filename,'(5F12.6)',num_lines)
->>>>>>> 07a5ac0ecaf51899b7f851d7aa9449031d0e5958
                 self.k_col.append(values[0])
                 self.k_abs.append(values[1])
                 self.k_path.append(values[2])
                 self.prompt_life_col.append(values[3])
                 self.prompt_life_path.append(values[4])
-<<<<<<< HEAD
-
                 if vars_per_cycle <= 5:
                     continue
-
-=======
-                if vars_per_cycle <= 5:
-                    continue
->>>>>>> 07a5ac0ecaf51899b7f851d7aa9449031d0e5958
                 avg, stdev = (values[5], values[6])
                 self.avg_k_col.append((avg, stdev))
                 avg, stdev = (values[7], values[8])
@@ -510,42 +281,15 @@ class Kcode(object):
                 self.prompt_life_combined.append((avg, stdev))
                 self.cycle_histories.append(values[17])
                 self.avg_k_combined_FOM.append(values[18])
-<<<<<<< HEAD
-
-            self.kcode['k_col'] = self.k_col
-            self.kcode['k_abs'] = self.k_abs
-            self.kcode['k_path']= self.k_path
-            self.kcode['prompt_life_col']=self.prompt_life_col
-            self.kcode['prompt_life_path']=self.prompt_life_path
-            self.kcode['avg_k_col']=self.avg_k_col
-            self.kcode['avg_k_abs']=self.avg_k_abs
-
-            self.kcode['avg_k_path']=self.avg_k_path
-            self.kcode['avg_k_combined']=self.avg_k_combined
-            self.kcode['avg_k_combined_active'] = self.avg_k_combined_active
-            self.kcode['prompt_life_combined']=self.prompt_life_combined
-            self.kcode['avg_k_combined_FOM']=self.avg_k_combined_FOM
-            print(self.kcode['k_col'])
 	except IndexError:
 	    print("No Kcode information")
 
-
-
-=======
-	except IndexError:
-	    print("No Kcode information")
-
->>>>>>> 07a5ac0ecaf51899b7f851d7aa9449031d0e5958
 def read_line(line,ffs):
     ff = FortranRecordReader(ffs)
     words =ff.read(line)
     return words
 
-<<<<<<< HEAD
-def routine_read_info(file,ffs,num_lines):
-=======
 def multiple_line_reader(file,ffs,num_lines):
->>>>>>> 07a5ac0ecaf51899b7f851d7aa9449031d0e5958
     info = []
     ff = FortranRecordReader(ffs)
     for i in range(int(num_lines)):
@@ -575,19 +319,16 @@ class TrackData(object):
 class SurfSrc(_BinaryReader):
     """Enables manipulating both the header and tracklists in surface source
     files.
-
     Example use cases include adding source particles from other codes, and
     combining multiple files together. Note that typically additional code
     will be needed to supplement this class in order to modify the header or
     track information in a way suitable to the use case.
-
     Parameters
     ----------
     filename : str
         Path to surface source file being read or written.
     mode : str, optional
         String indicating file opening mode to be used (defaults to 'rb').
-
     """
 
     def __init__(self, filename, mode="rb"):
@@ -598,12 +339,10 @@ class SurfSrc(_BinaryReader):
 
     def print_header(self):
         """Returns contents of SurfSrc's header as an informative string.
-
         Returns
         -------
         header_string : str
             A line-by-line listing of the contents of the SurfSrc's header.
-
         """
         header_string = "Code: {0} (version: {1}) [{2}]\n".format(
             self.kod, self.ver, self.loddat)
@@ -636,12 +375,10 @@ class SurfSrc(_BinaryReader):
 
     def print_tracklist(self, max_tracks=None):
         """Returns tracklists in SurfSrc as a string.
-
         Parameters
         ----------
         max_tracks : int, optional
             Maximum number of tracks to print. Defaults to all tracks.
-
         Returns
         -------
         track_data : str
@@ -767,7 +504,6 @@ class SurfSrc(_BinaryReader):
 
             # read table 1 record; various counts and sizes
             tablelengths = self.get_fortran_record()
-
             # interpret table lengths
             if '2.6.0' in self.ver:
                 self.np1 = tablelengths.get_int()[0]    # hist used to gen. src
@@ -1037,12 +773,10 @@ class SurfSrc(_BinaryReader):
 class Srctp(_BinaryReader):
     """This class stores source site data from a 'srctp' file written by
     MCNP. The source sites are stored in the 'fso' array in MCNP.
-
     Parameters
     ----------
     filename : str
         Path to Srctp file being worked with.
-
     """
 
     def __init__(self, filename):
@@ -1127,7 +861,6 @@ class Runtpe(_BinaryReader):
 
 class Xsdir(object):
     """This class stores the information contained in a single MCNP xsdir file.
-
     Attributes
     ----------
     f : file handle
@@ -1144,7 +877,6 @@ class Xsdir(object):
     tables : list
         Entries are XsdirTable objects, that appear in the same order as the
         xsdir table lines.
-
     Notes
     -----
     See MCNP5 User's Guide Volume 3 Appendix K for more information.
@@ -1236,12 +968,10 @@ class Xsdir(object):
 
     def find_table(self, name):
         """Find all tables for a given ZIAD.
-
         Parameters
         ----------
         name : str
             The ZIAD name.
-
         Returns
         -------
         tables : list
@@ -1255,19 +985,16 @@ class Xsdir(object):
 
     def to_xsdata(self, filename):
         """Writes a Serpent xsdata file for all continuous energy xs tables.
-
         Parameters
         ----------
         filename : str
             The output filename.
-
         """
         xsdata = open(filename, 'w')
         for table in self.tables:
             if table.serpent_type == 1:
                 xsdata.write(table.to_serpent() + '\n')
         xsdata.close()
-
     def __iter__(self):
         for table in self.tables:
             yield table
@@ -1275,7 +1002,6 @@ class Xsdir(object):
     def nucs(self):
         """Provides a set of the valid nuclide ids for nuclides contained
         in the xsdir.
-
         Returns
         -------
         valid_nucs : set
@@ -1291,7 +1017,6 @@ class XsdirTable(object):
     """Stores all information that describes a xsdir table entry, which appears
     as a single line in xsdir file. Attribute names are based off of those
     found in the MCNP5 User's Guide Volume 3, appendix K.
-
     Attributes
     ----------
     name : str
@@ -1389,7 +1114,6 @@ class XsdirTable(object):
 
     def to_serpent(self, directory=''):
         """Converts table to serpent format.
-
         Parameters
         ----------
         directory : str
@@ -1723,12 +1447,10 @@ def _is_cell_line(line):
 def mats_from_inp(inp):
     """This function reads an MCNP inp file and returns a mapping of material
     numbers to material objects.
-
     Parameters
     ----------
     inp : str
         MCNP input file
-
     Returns
     --------
     materials : dict
@@ -1799,7 +1521,6 @@ def mat_from_inp_line(filename, mat_line, densities='None'):
         Line number of the material card or interest
     densities : list of floats
         The densities associated with the material
-
     Returns
     -------
     finished_mat : Material or MultiMaterial
@@ -1941,7 +1662,6 @@ class Wwinp(Mesh):
     file. Weight window lower bounds are stored on a structured mesh. Only
     Cartesian mesh WWINP files are supported. Neutron, photon, and
     simotaneous neutron and photon WWINP files are supported.
-
     Attributes
     ----------
     ni : number of integers on card 2.
@@ -1978,12 +1698,10 @@ class Wwinp(Mesh):
         photon weight window lower bounds. These tags have the form
         "ww_X" where X is n or p The mesh has rootSet tags in the form
         X_e_upper_bounds.
-
     Notes
     -----
     Attribute names are identical to names speficied in WWINP file
     description in the MCNP5 User's Guide Volume 3 Appendix J.
-
     """
 
     def __init__(self):
@@ -2328,7 +2046,6 @@ class Meshtal(object):
     """This class stores all the information from an MCNP meshtal file with
     single or multiple fmesh4 neutron or photon tallies. The "tally" attribute
     provides key/value access to invidial MeshTally objects.
-
     Attributes
     ----------
     filename : string
@@ -2351,7 +2068,6 @@ class Meshtal(object):
         tag name, and the total relative error tag name. If tags is None
         the tags are named 'x_result', 'x_rel_error', 'x_result_total',
         'x_rel_error_total' where x is n or p for neutrons or photons.
-
     """
 
     def __init__(self, filename, tags=None, meshes_have_mats=False):
@@ -2425,7 +2141,6 @@ class MeshTally(StatMesh):
     and the "mesh" attribute is a MOAB mesh with all result and relative error
     data tagged. This class inherits from StatMesh, exposing all statistical
     mesh manipulation methods.
-
     Attributes
     ----------
     tally_number : int
@@ -2449,19 +2164,16 @@ class MeshTally(StatMesh):
     tag_names : iterable
         Four strs that specify the tag names for the results, relative errors,
         total results, and relative errors of the total results.
-
     Notes
     -----
     All Mesh/StatMesh attributes are also present via a super() call to
     StatMesh.__init__().
-
     """
 
     def __init__(self, f, tally_number, tag_names=None, mesh_has_mats=False):
         """Create MeshTally object from a filestream open to the second
         line of a mesh tally header (the neutron/photon line). MeshTally objects
         should be instantiated only through the Meshtal class.
-
         Parameters
         ----------
         f : filestream
@@ -2603,7 +2315,6 @@ def mesh_to_geom(mesh, frac_type='mass', title_card="Generated from PyNE Mesh"):
     portion of an MCNP input file (cells, surfaces, materials), prepended by a
     title card. The mesh must be axis aligned. Surfaces and cells are written
     in xyz iteration order (z changing fastest).
-
     Parameters
     ----------
     mesh : PyNE Mesh object
@@ -2613,13 +2324,11 @@ def mesh_to_geom(mesh, frac_type='mass', title_card="Generated from PyNE Mesh"):
         definition.
     title_card : str, optional
         The MCNP title card to appear at the top of the input file.
-
     Returns
     -------
     geom : str
         The title, cell, surface, and material cards of an MCNP input file in
         the proper order.
-
     """
     mesh._structured_check()
     divs = (mesh.structured_get_divisions('x'),
